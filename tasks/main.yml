@@ -13,7 +13,7 @@
     gid: "{{ item.gid | default(item.uid) | default(omit) }}"
   with_items: "{{ users }}"
   when: "'group' not in item and users_create_per_user_group"
-  tags: ["users", "configuration"]
+  tags: ["users", "groups", "configuration"]
 
 - name: User | User creation
   user:
@@ -42,6 +42,7 @@
   loop: "{{ users }}"
   when: item.password is defined
   become: yes
+  tags: ["users", "configuration"]
 
 - name: User | Adding user to sudoers without a password
   copy:
@@ -52,6 +53,7 @@
   loop: "{{ users }}"
   when: item.password is not defined
   become: yes
+  tags: ["users", "configuration"]
 
 - name: User | Deleted user removal
   user:
@@ -69,20 +71,3 @@
   with_items: "{{ users_deleted }}"
   when: users_create_per_user_group
   tags: ["users", "configuration"]
-
-- name: User | check if hushlogin exists
-  ansible.builtin.stat:
-    path: "/home/{{ item.username }}/.hushlogin"
-  with_items: "{{ users }}"
-  register: hushlogin_status
-
-- name: User | silence the login prompt
-  ansible.builtin.file:
-    dest: "/home/{{ item.username }}/.hushlogin"
-    state: touch
-    owner: "{{ item.username }}"
-    group: "{{ item.username }}"
-    mode: "0644"
-  with_items: "{{ users }}"
-  when:
-    - hushlogin_status.stat.exists is not defined
