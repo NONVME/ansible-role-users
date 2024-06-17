@@ -33,6 +33,14 @@
   with_items: "{{ users }}"
   tags: ["users", "configuration"]
 
+- name: User | Application user creation
+  user:
+    name: "{{ item.username }}"
+    shell: "/bin/false"
+    createhome: false
+  with_items: "{{ users_app }}"
+  tags: ["users", "configuration"]
+
 - name: User | Adding user to sudoers with a password
   copy:
     dest: "/etc/sudoers.d/ansible_{{ item.username }}"
